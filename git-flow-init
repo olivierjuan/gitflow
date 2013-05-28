@@ -37,7 +37,7 @@
 #
 
 usage() {
-	echo "usage: git flow init [-fd]"
+	echo "usage: svn-flow init [-fd]"
 }
 
 parse_args() {
@@ -48,21 +48,21 @@ parse_args() {
 
 # Default entry when no SUBACTION is given
 cmd_default() {
-	DEFINE_boolean force false 'force setting of gitflow branches, even if already configured' f
+	DEFINE_boolean force false 'force setting of svnflow branches, even if already configured' f
 	DEFINE_boolean defaults false 'use default branch naming conventions' d
 	parse_args "$@"
 	
 	if ! git rev-parse --git-dir >/dev/null 2>&1; then
-		git_do init
+		svn_do init
 	else
 		# assure that we are not working in a repo with local changes
 		git_repo_is_headless || require_clean_working_tree
 	fi
 
 	# running git flow init on an already initialized repo is fine
-	if gitflow_is_initialized && ! flag force; then
-		warn "Already initialized for gitflow."
-		warn "To force reinitialization, use: git flow init -f"
+	if svnflow_is_initialized && ! flag force; then
+		warn "Already initialized for svnflow."
+		warn "To force reinitialization, use: svn-flow init -f"
 		exit 0
 	fi
 

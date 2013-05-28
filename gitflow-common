@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 # git-flow -- A collection of Git extensions to provide high-level
 # repository operations for Vincent Driessen's branching model.
@@ -70,18 +71,20 @@ noflag() { local FLAG; eval FLAG='$FLAGS_'$1; [ $FLAG -ne $FLAGS_TRUE ]; }
 # Git specific common functionality
 #
 
-git_do() {
+svn_do() {
   # equivalent to git, used to indicate actions that make modifications
   if flag show_commands; then
-    echo "git $@" >&2
+    echo "svn $@" >&2
   fi
-  git "$@"
+  svn "$@"
 }
 
 git_local_branches() { git branch --no-color | sed 's/^[* ] //'; }
 git_remote_branches() { git branch -r --no-color | sed 's/^[* ] //'; }
-git_all_branches() { ( git branch --no-color; git branch -r --no-color) | sed 's/^[* ] //'; }
-git_all_tags() { git tag; }
+svn_all_branches() { svn list $(svn_root)/branches | sed 's|/||g'; }
+svn_all_tags() { svn list $(svn_root)/tags | sed 's|/||g'; }
+svn_root() { svn info | grep 'Repository Root' | sed 's|Repository Root: ||'; }
+
 
 git_current_branch() {
 	git branch --no-color | grep '^\* ' | grep -v 'no branch' | sed 's/^* //g'
@@ -109,12 +112,12 @@ git_remote_branch_exists() {
 	has $1 $(git_remote_branches)
 }
 
-git_branch_exists() {
-	has $1 $(git_all_branches)
+svn_branch_exists() {
+	has $1 $(svn_all_branches)
 }
 
-git_tag_exists() {
-	has $1 $(git_all_tags)
+svn_tag_exists() {
+	has $1 $(svn_all_tags)
 }
 
 #
@@ -166,37 +169,37 @@ git_is_branch_merged_into() {
 
 # check if this repo has been inited for gitflow
 gitflow_has_master_configured() {
-	local master=$(git config --get gitflow.branch.master)
+	local master=$(svn propget --revprop -r 0 gitflow.branch.master)
 	[ "$master" != "" ] && git_local_branch_exists "$master"
 }
 
 gitflow_has_develop_configured() {
-	local develop=$(git config --get gitflow.branch.develop)
+	local develop=$(svn propget --revprop -r 0 gitflow.branch.develop)
 	[ "$develop" != "" ] && git_local_branch_exists "$develop"
 }
 
 gitflow_has_prefixes_configured() {
-	git config --get gitflow.prefix.feature >/dev/null 2>&1     && \
-	git config --get gitflow.prefix.release >/dev/null 2>&1     && \
-	git config --get gitflow.prefix.hotfix >/dev/null 2>&1      && \
-	git config --get gitflow.prefix.support >/dev/null 2>&1     && \
-	git config --get gitflow.prefix.versiontag >/dev/null 2>&1
+	svn propget --revprop -r 0 svnflow.prefix.feature >/dev/null 2>&1     && \
+	svn propget --revprop -r 0 gitflow.prefix.release >/dev/null 2>&1     && \
+	svn propget --revprop -r 0 gitflow.prefix.hotfix >/dev/null 2>&1      && \
+	svn propget --revprop -r 0 gitflow.prefix.support >/dev/null 2>&1     && \
+	svn propget --revprop -r 0 gitflow.prefix.versiontag >/dev/null 2>&1
 }
 
-gitflow_is_initialized() {
+svnflow_is_initialized() {
 	gitflow_has_master_configured                    && \
 	gitflow_has_develop_configured                   && \
-	[ "$(git config --get gitflow.branch.master)" !=    \
-	  "$(git config --get gitflow.branch.develop)" ] && \
+	[ "$(svn propget --revprop -r 0 gitflow.branch.master)" !=    \
+	  "$(svn propget --revprop -r 0 gitflow.branch.develop)" ] && \
 	gitflow_has_prefixes_configured
 }
 
 # loading settings that can be overridden using git config
 gitflow_load_settings() {
 	export DOT_GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
-	export MASTER_BRANCH=$(git config --get gitflow.branch.master)
-	export DEVELOP_BRANCH=$(git config --get gitflow.branch.develop)
-	export ORIGIN=$(git config --get gitflow.origin || echo origin)
+	export MASTER_BRANCH=$(svn propget --revprop -r 0 gitflow.branch.master)
+	export DEVELOP_BRANCH=$(svn propget --revprop -r 0 gitflow.branch.develop)
+	export ORIGIN=$(svn propget --revprop -r 0 gitflow.origin || echo origin)
 }
 
 #
@@ -252,8 +255,8 @@ gitflow_resolve_nameprefix() {
 # Assertions for use in git-flow subcommands
 #
 
-require_git_repo() {
-	if ! git rev-parse --git-dir >/dev/null 2>&1; then
+require_svn_repo() {
+	if ! svn info >/dev/null 2>&1; then
 		die "fatal: Not a git repository"
 	fi
 }
@@ -288,19 +291,19 @@ require_remote_branch() {
 }
 
 require_branch() {
-	if ! has $1 $(git_all_branches); then
+	if ! has $1 $(svn_all_branches); then
 		die "Branch '$1' does not exist and is required."
 	fi
 }
 
 require_branch_absent() {
-	if has $1 $(git_all_branches); then
+	if has $1 $(svn_all_branches); then
 		die "Branch '$1' already exists. Pick another name."
 	fi
 }
 
 require_tag_absent() {
-	for tag in $(git_all_tags); do
+	for tag in $(svn_all_tags); do
 		if [ "$1" = "$tag" ]; then
 			die "Tag '$1' already exists. Pick another name."
 		fi

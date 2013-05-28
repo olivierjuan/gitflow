@@ -47,10 +47,10 @@ fi
 
 # The sed expression here replaces all backslashes by forward slashes.
 # This helps our Windows users, while not bothering our Unix users.
-export GITFLOW_DIR=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
+export SVNFLOW_DIR=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
 
 usage() {
-	echo "usage: git flow <subcommand>"
+	echo "usage: svn-flow <subcommand>"
 	echo
 	echo "Available subcommands are:"
 	echo "   init      Initialize a new git repo with support for the branching model."
@@ -60,7 +60,7 @@ usage() {
 	echo "   support   Manage your support branches."
 	echo "   version   Shows version information."
 	echo
-	echo "Try 'git flow <subcommand> help' for details."
+	echo "Try 'svn-flow <subcommand> help' for details."
 }
 
 main() {
@@ -70,7 +70,7 @@ main() {
 	fi
 
 	# load common functionality
-	. "$GITFLOW_DIR/gitflow-common"
+	. "$SVNFLOW_DIR/gitflow-common"
 
 	# This environmental variable fixes non-POSIX getopt style argument
 	# parsing, effectively breaking git-flow subcommand parsing on several
@@ -78,8 +78,8 @@ main() {
 	export POSIXLY_CORRECT=1
 
 	# use the shFlags project to parse the command line arguments
-	. "$GITFLOW_DIR/gitflow-shFlags"
-	FLAGS_PARENT="git flow"
+	. "$SVNFLOW_DIR/gitflow-shFlags"
+	FLAGS_PARENT="svn-flow"
 
   # allow user to request git action logging
   DEFINE_boolean show_commands false 'show actions taken (git commands)' g
@@ -91,14 +91,14 @@ main() {
 	# sanity checks
 	SUBCOMMAND="$1"; shift
 
-	if [ ! -e "$GITFLOW_DIR/git-flow-$SUBCOMMAND" ]; then
+	if [ ! -e "$SVNFLOW_DIR/git-flow-$SUBCOMMAND" ]; then
 		usage
 		exit 1
 	fi
 
 	# run command
-	. "$GITFLOW_DIR/git-flow-$SUBCOMMAND"
-	FLAGS_PARENT="git flow $SUBCOMMAND"
+	. "$SVNFLOW_DIR/git-flow-$SUBCOMMAND"
+	FLAGS_PARENT="svn-flow $SUBCOMMAND"
 
 	# test if the first argument is a flag (i.e. starts with '-')
 	# in that case, we interpret this arg as a flag for the default

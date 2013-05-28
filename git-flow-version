@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 # git-flow -- A collection of Git extensions to provide high-level
 # repository operations for Vincent Driessen's branching model.
@@ -36,14 +37,14 @@
 # policies, either expressed or implied, of Vincent Driessen.
 #
 
-GITFLOW_VERSION=0.4.2-pre
+SVNFLOW_VERSION=0.4.2-pre-0.1
 
 usage() {
-	echo "usage: git flow version"
+	echo "usage: svn-flow version"
 }
 
 cmd_default() {
-	echo "$GITFLOW_VERSION"
+	echo "$SVNFLOW_VERSION"
 }
 
 cmd_help() {
